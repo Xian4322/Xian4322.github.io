@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Mundi Interactivo</title>
+    <!-- Incluye el CSS de Leaflet desde un CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Incluye el CSS de UIkit desde un CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.13.7/dist/css/uikit.min.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f7f7f7;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background-color: white;
+            color: black;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            height: calc(100vh - 200px);
+            padding: 20px;
+        }
+
+        #map {
+            width: 48%;
+            height: 100%;
+            border-radius: 8px;
+            border: 2px solid #e5e5e5;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #image {
+            width: 48%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            border: 2px solid #e5e5e5;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            width: 100%;
+            background-color: #222;
+            color: white;
+            padding: 15px 0;
+            font-size: 16px;
+        }
+
+        footer .uk-grid {
+            margin: 0;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    Mapa Mundial Interactivo
+</header>
+
+<p class="uk-text-lead uk-margin-large-top uk-text-center">
+    En el mundo hay actualmente 194 países soberanos reconocidos por la ONU con autogobierno y completa independencia. ¡Descubre más a continuación!
+</p>
+
+<div class="content">
+    <div id="map"></div>
+    <div id="image" style="background-image: url('https://cepafuerteventuranorte.es/wp-content/uploads/descubre-los-secretos-de-los-continentes-caracteristicas-y-curiosidades.png');"></div>
+</div>
+
+<footer>
+    <div class="uk-container uk-container-small">
+        <div class="uk-grid uk-child-width-1-2@m" uk-grid>
+            <div>
+                <p>Elaborado por la estudiante: Liseth Adriano Valentin</p>
+                <p>Curso: Macroeconomía</p>
+            </div>
+            <div>
+                <p>Docente: Mallqui Alvarado, José Bartolomé</p>
+                <p>Año y Semestre: 2024 - II</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.13.7/dist/js/uikit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.13.7/dist/js/uikit-icons.min.js"></script>
+<script>
+    var map = L.map('map').setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var continentColors = {
+        "Africa": "#ff7f00",
+        "Asia": "#377eb8",
+        "Europe": "#4daf4a",
+        "North America": "#984ea3",
+        "South America": "#e41a1c",
+        "Oceania": "#ffff33",
+        "Antarctica": "#a65628"
+    };
+
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    var countryNamesEs = {
+        "Afghanistan": "Afganistán",
+        "Albania": "Albania",
+        "Algeria": "Argelia",
+        "Andorra": "Andorra",
+        "Angola": "Angola",
+        "Zimbabwe": "Zimbabue"
+    };
+
+    fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            L.geoJSON(data, {
+                style: function(feature) {
+                    var countryColor = getRandomColor();
+                    return {
+                        color: countryColor,
+                        weight: 2,
+                        fillColor: continentColors[feature.properties.continent] || "#cccccc",
+                        fillOpacity: 0.7
+                    };
+                },
+                onEachFeature: function (feature, layer) {
+                    var countryNameEs = countryNamesEs[feature.properties.name] || feature.properties.name;
+
+                    layer.on('mouseover', function () {
+                        layer.bindPopup(countryNameEs).openPopup();
+                    });
+
+                    layer.on('mouseout', function () {
+                        layer.closePopup();
+                    });
+
+                    var label = L.marker(layer.getBounds().getCenter(), {
+                        icon: L.divIcon({
+                            className: 'country-label',
+                            html: countryNameEs,
+                        })
+                    }).addTo(map);
+                }
+            }).addTo(map);
+        });
+</script>
+
+</body>
+</html>
